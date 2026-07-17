@@ -13,38 +13,44 @@ The original notebooks are preserved as historical, hands-on examples. The reusa
 | Semantic search | TF-IDF similarity | sentence-transformer embeddings |
 | Topic discovery | LDA | BERTopic-ready workflow |
 | Keyword extraction | frequency and TF-IDF | embedding-based ranking |
-| Evaluation | accuracy, precision, recall, F1 | the same metrics plus confidence-aware inference |
+| Evaluation | accuracy, precision, recall, F1 | confidence-aware inference and shared metrics |
+
+## Open dataset benchmarks
+
+The benchmark runner supports four public datasets with different sizes and problem shapes:
+
+- AG News: four-class news categorisation
+- IMDb: long-form sentiment classification
+- DBpedia 14: fourteen-class ontology classification
+- Yelp Polarity: large-scale review sentiment classification
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -e ".[datasets,dev]"
+pytest
+python examples/benchmark_open_datasets.py --dataset all --max-train 10000 --max-test 2000
+```
+
+Each run uses deterministic sampling, fits only on the training split, records accuracy plus macro and weighted F1, and writes machine-readable results to `reports/benchmark_results.json`. See [docs/OPEN_DATASETS.md](docs/OPEN_DATASETS.md) for provenance and licensing guidance.
 
 ## Repository structure
 
 ```text
 .
 ├── src/nlp_reference/       # reusable Python package
-├── examples/                # runnable examples
+├── examples/                # runnable classical and modern examples
 ├── tests/                   # unit tests
+├── docs/                    # problem and dataset guidance
 ├── .github/workflows/       # automated quality checks
 ├── *.ipynb                  # original educational notebooks
 └── pyproject.toml           # package and tooling configuration
 ```
 
-## Quick start
-
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
-pytest
-```
-
-Run a classical classification example:
+## Additional examples
 
 ```bash
 python examples/classical_text_classification.py
-```
-
-Install optional transformer dependencies:
-
-```bash
 pip install -e ".[transformers]"
 python examples/modern_nlp_inference.py
 ```
@@ -55,7 +61,8 @@ python examples/modern_nlp_inference.py
 - **Use one evaluation contract.** Traditional and modern systems should be compared with the same split and metrics.
 - **Avoid data leakage.** Vectorizers and models are fitted only on training data through scikit-learn pipelines.
 - **Keep inference reusable.** Public functions validate inputs and return predictable Python objects.
-- **Make optional dependencies explicit.** The core package remains lightweight; transformer libraries are installed only when needed.
+- **Make optional dependencies explicit.** Dataset and transformer libraries are installed only when needed.
+- **Record provenance.** Benchmark outputs include source and license metadata.
 
 ## Included notebooks
 
@@ -65,19 +72,15 @@ The repository includes notebooks for topic modelling, document visualisation, a
 
 1. Learn text cleaning and tokenization.
 2. Build a TF-IDF classification baseline.
-3. Inspect model errors and class-level metrics.
-4. Explore topic modelling and document similarity.
-5. Compare a transformer or embedding model against the baseline.
-6. Package the selected solution with tests and reproducible configuration.
+3. Run it on multiple public datasets.
+4. Inspect model errors and class-level metrics.
+5. Explore topic modelling and document similarity.
+6. Compare a transformer or embedding model against the baseline.
+7. Package the selected solution with tests and reproducible configuration.
 
 ## Quality checks
 
-The project uses:
-
-- `pytest` for tests
-- `ruff` for linting
-- `mypy` for type checking
-- GitHub Actions for automated validation
+The project uses `pytest`, Ruff, MyPy, and GitHub Actions across supported Python versions.
 
 ## Responsible use
 
