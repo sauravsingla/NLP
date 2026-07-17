@@ -1,0 +1,57 @@
+name: Open dataset benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_train:
+        description: Maximum training examples per dataset
+        required: false
+        default: "10000"
+      max_test:
+        description: Maximum test examples per dataset
+        required: false
+        default: "2000"
+  push:
+    branches: [master]
+    paths:
+      - "src/nlp_reference/**"
+      - "examples/benchmark_open_datasets.py"
+      - "pyproject.toml"
+      - ".github/workflows/open-dataset-benchmarks.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HF_HOME: ${{ github.workspace }}/.cache/huggingface
+      MAX_TRAIN: ${{ inputs.max_train || '2000' }}
+      MAX_TEST: ${{ inputs.max_test || '500' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Cache public datasets
+        uses: actions/cache@v4
+        with:
+          path: .cache/huggingface
+          key: hf-datasets-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+      - name: Install benchmark dependencies
+        run: python -m pip install -e ".[datasets]"
+      - name: Run all public datasets
+        run: >-
+          python examples/benchmark_open_datasets.py
+          --dataset all
+          --max-train "$MAX_TRAIN"
+          --max-test "$MAX_TEST"
+      - name: Upload benchmark metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: open-dataset-benchmark-results
+          path: reports/benchmark_results.json
+          if-no-files-found: error
