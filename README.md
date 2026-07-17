@@ -15,9 +15,15 @@ The original notebooks are preserved as historical, hands-on examples. The reusa
 | Keyword extraction | frequency and TF-IDF | embedding-based ranking |
 | Evaluation | accuracy, precision, recall, F1 | confidence-aware inference and shared metrics |
 
-## Open dataset benchmarks
+## Open dataset benchmark leaderboard
 
-The benchmark runner supports four public datasets with different sizes and problem shapes:
+The leaderboard compares three efficient reference models under the same data split, sampling, TF-IDF and evaluation rules:
+
+- Logistic Regression
+- Linear SVM trained with stochastic gradient descent
+- Complement Naive Bayes
+
+It runs across four public datasets with different sizes and problem shapes:
 
 - AG News: four-class news categorisation
 - IMDb: long-form sentiment classification
@@ -29,10 +35,17 @@ python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e ".[datasets,dev]"
 pytest
-python examples/benchmark_open_datasets.py --dataset all --max-train 10000 --max-test 2000
+python examples/generate_leaderboard.py --dataset all --model all --max-train 10000 --max-test 2000
 ```
 
-Each run uses deterministic sampling, fits only on the training split, records accuracy plus macro and weighted F1, and writes machine-readable results to `reports/benchmark_results.json`. See [docs/OPEN_DATASETS.md](docs/OPEN_DATASETS.md) for provenance and licensing guidance.
+Each run records accuracy, macro F1, weighted F1, model fitting time, prediction time and inference throughput. It produces:
+
+- `reports/leaderboard.json` for automated analysis
+- `reports/LEADERBOARD.md` for a human-readable ranked table
+
+The GitHub Actions workflow publishes both files as the `nlp-benchmark-leaderboard` artifact and displays the generated table in the workflow summary. Runtime values are hardware-dependent; quality metrics remain directly comparable because every model follows the same evaluation contract.
+
+See [docs/OPEN_DATASETS.md](docs/OPEN_DATASETS.md) for provenance and licensing guidance.
 
 ## Repository structure
 
@@ -42,6 +55,7 @@ Each run uses deterministic sampling, fits only on the training split, records a
 ├── examples/                # runnable classical and modern examples
 ├── tests/                   # unit tests
 ├── docs/                    # problem and dataset guidance
+├── reports/                 # generated benchmark reports
 ├── .github/workflows/       # automated quality checks
 ├── *.ipynb                  # original educational notebooks
 └── pyproject.toml           # package and tooling configuration
@@ -60,9 +74,10 @@ python examples/modern_nlp_inference.py
 - **Start with a strong baseline.** A small TF-IDF model is often faster, cheaper, and easier to explain than a large neural model.
 - **Use one evaluation contract.** Traditional and modern systems should be compared with the same split and metrics.
 - **Avoid data leakage.** Vectorizers and models are fitted only on training data through scikit-learn pipelines.
+- **Measure efficiency.** Leaderboards report quality, fitting time and inference throughput.
 - **Keep inference reusable.** Public functions validate inputs and return predictable Python objects.
 - **Make optional dependencies explicit.** Dataset and transformer libraries are installed only when needed.
-- **Record provenance.** Benchmark outputs include source and license metadata.
+- **Record provenance.** Benchmark documentation identifies sources and licence considerations.
 
 ## Included notebooks
 
@@ -72,7 +87,7 @@ The repository includes notebooks for topic modelling, document visualisation, a
 
 1. Learn text cleaning and tokenization.
 2. Build a TF-IDF classification baseline.
-3. Run it on multiple public datasets.
+3. Compare multiple baselines through the public leaderboard.
 4. Inspect model errors and class-level metrics.
 5. Explore topic modelling and document similarity.
 6. Compare a transformer or embedding model against the baseline.
