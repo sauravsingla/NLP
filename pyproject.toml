@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nlp-reference"
-version = "0.1.0"
+version = "0.2.0"
 description = "Reference implementations for classical and modern NLP workflows"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,7 +16,16 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+datasets = [
+  "datasets>=3.0,<5",
+]
 transformers = [
+  "sentence-transformers>=3.0,<6",
+  "transformers>=4.41,<6",
+  "torch>=2.2,<3",
+]
+all = [
+  "datasets>=3.0,<5",
   "sentence-transformers>=3.0,<6",
   "transformers>=4.41,<6",
   "torch>=2.2,<3",
