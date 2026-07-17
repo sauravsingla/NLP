@@ -16,6 +16,8 @@ on:
     paths:
       - "src/nlp_reference/**"
       - "examples/benchmark_open_datasets.py"
+      - "examples/generate_leaderboard.py"
+      - "tests/test_leaderboard.py"
       - "pyproject.toml"
       - ".github/workflows/open-dataset-benchmarks.yml"
 
@@ -42,16 +44,23 @@ jobs:
           path: .cache/huggingface
           key: hf-datasets-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
       - name: Install benchmark dependencies
-        run: python -m pip install -e ".[datasets]"
-      - name: Run all public datasets
+        run: python -m pip install -e ".[datasets,dev]"
+      - name: Run tests
+        run: pytest
+      - name: Generate multi-model leaderboard
         run: >-
-          python examples/benchmark_open_datasets.py
+          python examples/generate_leaderboard.py
           --dataset all
+          --model all
           --max-train "$MAX_TRAIN"
           --max-test "$MAX_TEST"
-      - name: Upload benchmark metrics
+      - name: Add leaderboard to workflow summary
+        run: cat reports/LEADERBOARD.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload benchmark leaderboard
         uses: actions/upload-artifact@v4
         with:
-          name: open-dataset-benchmark-results
-          path: reports/benchmark_results.json
+          name: nlp-benchmark-leaderboard
+          path: |
+            reports/leaderboard.json
+            reports/LEADERBOARD.md
           if-no-files-found: error
